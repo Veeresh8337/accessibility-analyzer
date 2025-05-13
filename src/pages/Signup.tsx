@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "@/components/ui/use-toast";
 import { Accessibility } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const signupSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -25,6 +26,13 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 const Signup = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { signup, isAuthenticated } = useAuth();
+  
+  // If already logged in, redirect to home page
+  if (isAuthenticated) {
+    navigate('/');
+    return null;
+  }
   
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -39,25 +47,22 @@ const Signup = () => {
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
     try {
-      // In a real app, this would register with a backend
-      console.log("Signup with:", data);
+      await signup(data.name, data.email, data.password);
       
-      // Simulate registration success
-      setTimeout(() => {
-        toast({
-          title: "Account Created",
-          description: "Welcome to Accessibility Analyzer!",
-        });
-        navigate("/");
-        setIsLoading(false);
-      }, 1500);
-    } catch (error) {
+      toast({
+        title: "Account Created",
+        description: "Welcome to Accessibility Analyzer!",
+      });
+      
+      navigate("/");
+    } catch (error: any) {
       console.error("Signup error:", error);
       toast({
         title: "Signup Failed",
-        description: "Please try again later.",
+        description: error?.message || "Please try again later.",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };

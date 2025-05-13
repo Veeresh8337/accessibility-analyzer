@@ -1,8 +1,11 @@
 
+import { useState } from "react";
 import CircularProgress from "./CircularProgress";
 import IssueCard from "./IssueCard";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AnalysisPortabilityChart from "./AnalysisChart";
 
 interface ReportProps {
   url: string;
@@ -16,6 +19,8 @@ interface ReportProps {
 }
 
 const Report = ({ url, score, issues, onNewScan }: ReportProps) => {
+  const [chartType, setChartType] = useState<"radar" | "pie" | "bar" | "line">("radar");
+  
   // Sample issues for demonstration
   const sampleIssues = [
     {
@@ -103,6 +108,86 @@ const Report = ({ url, score, issues, onNewScan }: ReportProps) => {
             </div>
           </div>
         </div>
+      </div>
+      
+      <div className="glass-card p-6 md:p-8 mb-8">
+        <h3 className="text-xl font-semibold mb-4">Accessibility Analysis</h3>
+        
+        <Tabs defaultValue="chart" className="mb-4">
+          <div className="flex justify-between items-center mb-4">
+            <TabsList>
+              <TabsTrigger value="chart">Chart</TabsTrigger>
+              <TabsTrigger value="metrics">Metrics</TabsTrigger>
+            </TabsList>
+            
+            {/* Chart Type Selector */}
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant={chartType === "radar" ? "default" : "outline"}
+                onClick={() => setChartType("radar")}
+              >
+                Radar
+              </Button>
+              <Button 
+                size="sm" 
+                variant={chartType === "pie" ? "default" : "outline"}
+                onClick={() => setChartType("pie")}
+              >
+                Pie
+              </Button>
+              <Button 
+                size="sm" 
+                variant={chartType === "bar" ? "default" : "outline"}
+                onClick={() => setChartType("bar")}
+              >
+                Bar
+              </Button>
+              <Button 
+                size="sm" 
+                variant={chartType === "line" ? "default" : "outline"}
+                onClick={() => setChartType("line")}
+              >
+                Line
+              </Button>
+            </div>
+          </div>
+          
+          <TabsContent value="chart">
+            <div className="p-4 bg-card rounded-lg">
+              <AnalysisPortabilityChart chartType={chartType} />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="metrics">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {[
+                { category: "Semantic HTML", score: 75, description: "Use of proper HTML elements for their intended purpose" },
+                { category: "ARIA Usage", score: 85, description: "Proper implementation of ARIA attributes" },
+                { category: "Keyboard Nav", score: 60, description: "Navigability and operability using keyboard alone" },
+                { category: "Color Contrast", score: 90, description: "Sufficient contrast between text and background" },
+                { category: "Text Alternatives", score: 70, description: "Alternative text for non-text content" },
+                { category: "Mobile Friendly", score: 80, description: "Usability on mobile and touch devices" }
+              ].map((metric, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">{metric.category}</h4>
+                    <span className={`font-bold ${metric.score >= 80 ? 'text-success' : metric.score >= 60 ? 'text-warning' : 'text-critical'}`}>
+                      {metric.score}/100
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{metric.description}</p>
+                  <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${metric.score >= 80 ? 'bg-success' : metric.score >= 60 ? 'bg-warning' : 'bg-critical'}`}
+                      style={{ width: `${metric.score}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
       
       <div>
